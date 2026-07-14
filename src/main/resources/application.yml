@@ -28,7 +28,11 @@ spring:
     change-log: classpath:/db/changelog/changelog-master.yaml
 
 
-
+minio:
+  endpoint: http://localhost:9000   # API адрес
+  access-key: minioadmin     # Логин
+  secret-key: minioadmin     # Пароль
+  bucket-name: user-files    # Название корзины для файлов пользователей
 
 
 logging:

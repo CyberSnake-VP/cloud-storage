@@ -63,6 +63,23 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
+
+        <!--
+         Java-клиент для работы с MinIO/S3.
+           Позволяет:
+            - Создавать buckets (корзины)
+            - Загружать файлы (putObject)
+            - Скачивать файлы (getObject)
+            - Удалять файлы (removeObject)
+            - Копировать/перемещать файлы
+            - Проверять существование файлов
+        -->
+        <dependency>
+            <groupId>io.minio</groupId>
+            <artifactId>minio</artifactId>
+            <version>8.5.7</version>
+        </dependency>
+
         <!-- ТЕСТОВЫЕ ЗАВИСИМОСТИ -->
         <!--
            - JUnit 5 (фреймворк для тестов)
