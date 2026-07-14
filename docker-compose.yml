@@ -22,5 +22,33 @@ services:
     restart: unless-stopped
 
 
+  # MINIO — S3-совместимое хранилище
+  minio:
+    image: minio/minio:latest
+    container_name: cloud-storage-minio
+
+    # Переменные окружения для создания admin пользователя
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+
+    # Проброс портов
+    ports:
+      - "9000:9000"  # API порт — для программного доступа (Java SDK)
+      - "9001:9001"  # Console порт — веб-интерфейс управления
+
+    volumes:
+      - minio_data:/data
+
+    # Команда запуска: сервер + веб-консоль на порту 9001
+    command: server /data --console-address ":9001"
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   postgres_data:
+  minio_data:
