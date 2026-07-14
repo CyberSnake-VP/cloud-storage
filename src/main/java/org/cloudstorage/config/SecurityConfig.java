@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.cloudstorage.repository.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -33,12 +35,6 @@ public class SecurityConfig {
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> userRepository.findByUsername(username)
-                .map(user -> org.springframework.security.core.userdetails.User
-                        .withUsername(user.getUsername())
-                        .password(user.getPassword())
-                        .authorities("ROLE_USER") // у все пользователей роль USER, добавим другие после
-
-                        .build())
                 .orElseThrow(() -> new UsernameNotFoundException("No user found with username: " + username));
     }
 
@@ -46,6 +42,12 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+        return authConfig.getAuthenticationManager();
     }
 
 
@@ -78,7 +80,6 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // РАЗРЕШЕНО ВСЕМ (без аутентификации):
                         .requestMatchers("/api/auth/**").permitAll() // регистрация и логин
-                        .requestMatchers("/health", "/health/**").permitAll() // проверка состояния
 
                         // ВСЕ ОСТАЛЬНОЕ ТРЕБУЕТ аутентификации
                         .anyRequest().authenticated()

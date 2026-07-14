@@ -20,6 +20,7 @@ public class UserServiceImpl implements UserService {
     // Мы создадим этот бин в SecurityConfig.
     private final PasswordEncoder passwordEncoder;
 
+    @Transactional
     @Override
     public User register(String username, String password) {
         // проверка уникальности
