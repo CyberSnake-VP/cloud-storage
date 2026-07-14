@@ -11,4 +11,5 @@ public interface StorageService {
     void deleteObject(Long userId, String filePath);
     void createFolder(Long userId, String folderName);
     List<String> listFolder(Long userId, String folderPath);
+    void init();
 }

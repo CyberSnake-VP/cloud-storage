@@ -2,16 +2,15 @@ package org.cloudstorage.service;
 
 import io.minio.*;
 import io.minio.messages.Item;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,7 +49,7 @@ public class StorageServiceImpl implements StorageService {
                 minioClient.makeBucket(
                         MakeBucketArgs.builder().bucket(bucketName).build());
                 log.info("Bucket {} created successfully", bucketName);
-            } else  {
+            } else {
                 log.info("Bucket {} already exists", bucketName);
             }
         } catch (Exception e) {
@@ -61,9 +60,9 @@ public class StorageServiceImpl implements StorageService {
 
     /**
      * ЗАГРУЗКА ФАЙЛА.
-     * @param userId ID пользователя
+     * @param userId   ID пользователя
      * @param filePath полный путь к файлу внутри bucket
-     * @param file загружаемый файл (MultipartFile)
+     * @param file     загружаемый файл (MultipartFile)
      */
     @Override
     public void uploadFile(Long userId, String filePath, MultipartFile file) {
@@ -148,14 +147,14 @@ public class StorageServiceImpl implements StorageService {
      * СОЗДАНИЕ ПУСТОЙ ПАПКИ.
      * В S3 папки создаются путём создания пустого объекта
      * с именем, заканчивающимся на "/".
-     * @param userId ID пользователя
+     * @param userId     ID пользователя
      * @param folderPath путь к папке
      */
     @Override
     public void createFolder(Long userId, String folderPath) {
         try {
             // Убеждаемся что путь заканчивается на "/"
-            String path =  folderPath.endsWith("/") ? folderPath : folderPath + "/";
+            String path = folderPath.endsWith("/") ? folderPath : folderPath + "/";
             String fullPath = getUserPrefix(userId) + path;
 
             // Создаем пустой объект - это и есть "папка" в S3
@@ -175,11 +174,9 @@ public class StorageServiceImpl implements StorageService {
         }
     }
 
-
-
     /**
      * ПОЛУЧЕНИЕ СОДЕРЖИМОГО ПАПКИ.
-     * @param userId ID пользователя
+     * @param userId     ID пользователя
      * @param folderPath путь к папке (например, "docs/")
      * @return список имён файлов и папок внутри
      */
@@ -190,11 +187,11 @@ public class StorageServiceImpl implements StorageService {
             String fullPath = getUserPrefix(userId) + folderPath;
 
             Iterable<Result<Item>> results = minioClient.listObjects(
-                ListObjectsArgs.builder()
-                        .bucket(bucketName)
-                        .prefix(fullPath)
-                        .recursive(false) // Только текущий уровень docs/.. (сюда не идем/..)
-                        .build()
+                    ListObjectsArgs.builder()
+                            .bucket(bucketName)
+                            .prefix(fullPath)
+                            .recursive(false) // Только текущий уровень docs/.. (сюда не идем/..)
+                            .build()
             );
 
             for (Result<Item> result : results) {
@@ -215,6 +212,21 @@ public class StorageServiceImpl implements StorageService {
     }
 
     /**
+     * СОЗДАНИЕ BUCKET ПРИ ЗАПУСКЕ ПРИЛОЖЕНИЯ.
+     * @PostConstruct — метод вызывается автоматически после создания бина.
+     * Это гарантирует, что bucket существует до того, как приложение
+     * начнёт принимать запросы.
+     */
+    @PostConstruct
+    @Override
+    public void init() {
+        ensureBucketExists();
+        log.info("StorageService initialized, bucket '{}' is ready", bucketName);
+    }
+
+
+    // --------------------- Утилитарные(вспомогательные) методы -------------------------
+    /**
      * Возвращает префикс для файлов пользователя.
      * Пример: user-1-files/
      */
@@ -222,7 +234,7 @@ public class StorageServiceImpl implements StorageService {
         return "user-" + userId + "-files/";
     }
 
-    private  void deleteFolder(Long userId, String folderPath) {
+    private void deleteFolder(Long userId, String folderPath) {
         try {
             String fullPath = getUserPrefix(userId) + folderPath;
 
@@ -246,7 +258,7 @@ public class StorageServiceImpl implements StorageService {
                 );
             }
             log.info("Folder {} deleted successfully", fullPath);
-        }  catch (Exception e) {
+        } catch (Exception e) {
             log.error("Error listing folder: {}", e.getMessage());
             throw new RuntimeException("Could not list folder: " + e.getMessage());
         }
