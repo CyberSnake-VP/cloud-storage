@@ -91,7 +91,7 @@ public class ResourceServiceImpl implements ResourceService {
             storageService.createFolder(userId, to);
 
             // Получаем все содержимое папки
-            List<String> allItems = storageService.listFolderRecursive(userId, to);
+            List<String> allItems = storageService.listFolderRecursive(userId, from);
 
             for (String itemPath : allItems) {
                 // Отбрасываем старый путь слева, оставляем после /
@@ -143,7 +143,10 @@ public class ResourceServiceImpl implements ResourceService {
         // Делаем поиск в нижнем регистре, через фильтр прогоняем все пути
         String queryLower = query.toLowerCase();
         List<String> matched = allItems.stream()
-                .filter(path -> path.toLowerCase().contains(queryLower))
+                .filter(path -> {
+                    String name = extractName(path);
+                    return name.toLowerCase().contains(queryLower);
+                })
                 .toList();
 
         // Проверяем папка или файл, формируем dto, возвращаем список
@@ -154,9 +157,6 @@ public class ResourceServiceImpl implements ResourceService {
     public List<ResourceResponse> uploadResource(Long userId, String path, MultipartFile file) {
         validatePath(path);
 
-        if (storageService.exists(userId, path)) {
-            throw new ResourceAlreadyExists("resource already exists, path: " + path);
-        }
         if (file.isEmpty()) {
             throw new IllegalArgumentException("file is null or empty");
         }
@@ -169,6 +169,11 @@ public class ResourceServiceImpl implements ResourceService {
         }
 
         String fullPath = path + originalFilename;
+
+        // проверяем существует ли уже такой ресурс
+        if (storageService.exists(userId, fullPath)) {
+            throw new ResourceAlreadyExists("resource already exists, path: " + fullPath);
+        }
 
         // Записываем файл(сохраняем)
         storageService.uploadFile(userId, fullPath, file);
@@ -195,16 +200,18 @@ public class ResourceServiceImpl implements ResourceService {
     public ResourceResponse createDirectory(Long userId, String path) {
         validatePath(path);
 
-        if(!path.endsWith("/")) {
+        if (!path.endsWith("/")) {
             throw new IllegalArgumentException("Cannot create directory for a file. Target path must end with '/'");
         }
 
         // Проверяем существование родительской папки
         String parentPath = getParentPath(path);
-        validateExists(userId, parentPath);
+        if (!parentPath.isEmpty()) {
+            validateExists(userId, parentPath);
+        }
 
         // Проверка существование создаваемой папки
-        if(storageService.exists(userId, path)) {
+        if (storageService.exists(userId, path)) {
             throw new ResourceAlreadyExists("resource already exists, path: " + path);
         }
 
@@ -243,14 +250,30 @@ public class ResourceServiceImpl implements ResourceService {
      * Примеры:
      * "folder/file.txt" → "folder/"
      * "folder/subfolder/" → "folder/"
+     * "folder/" -> ""
      * "file.txt" → ""
      */
     private String getParentPath(String path) {
-        int lastSlash = path.lastIndexOf('/');
-        if (lastSlash >= 0) {
-            return path.substring(0, lastSlash + 1);
+        // если у нас папка
+        if (path.endsWith("/")) {
+            // убираем последний слеш folder/subfolder
+            String cleanPath = path.substring(0, path.length() - 1);
+            // ищем индекс слеша subfolder или folder/subfolder
+            int slashIdx = cleanPath.lastIndexOf('/');
+            if (slashIdx >= 0) {
+                // значит folder/subfolder - срезаем и возвращаем folder/
+                return cleanPath.substring(0, slashIdx + 1);
+            }
+            // значит корневая папка
+            return "";
+        } else {
+            int slashIdx = path.lastIndexOf('/');
+            if (slashIdx >= 0) {
+                return path.substring(0, slashIdx + 1);
+            } else {
+                return "";
+            }
         }
-        return "";
     }
 
     private void validatePath(String path) {

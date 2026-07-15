@@ -201,7 +201,7 @@ public class StorageServiceImpl implements StorageService {
                 Item item = result.get();
                 // Убираем префикс пользователя из имени
                 String name = item.objectName().replace(getUserPrefix(userId), "");
-                if (!name.isEmpty()) {
+                if (!name.isEmpty() && !name.equals(folderPath)) {
                     items.add(name);
                 }
             }
