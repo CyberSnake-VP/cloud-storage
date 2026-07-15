@@ -6,6 +6,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -147,6 +148,7 @@ public class StorageServiceImpl implements StorageService {
      * СОЗДАНИЕ ПУСТОЙ ПАПКИ.
      * В S3 папки создаются путём создания пустого объекта
      * с именем, заканчивающимся на "/".
+     *
      * @param userId     ID пользователя
      * @param folderPath путь к папке
      */
@@ -176,6 +178,7 @@ public class StorageServiceImpl implements StorageService {
 
     /**
      * ПОЛУЧЕНИЕ СОДЕРЖИМОГО ПАПКИ.
+     *
      * @param userId     ID пользователя
      * @param folderPath путь к папке (например, "docs/")
      * @return список имён файлов и папок внутри
@@ -213,19 +216,147 @@ public class StorageServiceImpl implements StorageService {
 
     /**
      * СОЗДАНИЕ BUCKET ПРИ ЗАПУСКЕ ПРИЛОЖЕНИЯ.
+     *
      * @PostConstruct — метод вызывается автоматически после создания бина.
      * Это гарантирует, что bucket существует до того, как приложение
      * начнёт принимать запросы.
      */
     @PostConstruct
-    @Override
-    public void init() {
+    private void init() {
         ensureBucketExists();
         log.info("StorageService initialized, bucket '{}' is ready", bucketName);
     }
 
+    /// Проверка на существование ресурса
+    @Override
+    public boolean exists(Long userId, String path) {
+        try {
+            String fullPath = getUserPrefix(userId) + path;
+
+            if (fullPath.endsWith("/")) {
+                // Папка, проверяем есть ли объект с таким префиксом
+                Iterable<Result<Item>> results = minioClient.listObjects(
+                        ListObjectsArgs.builder()
+                                .bucket(bucketName)
+                                .prefix(fullPath)
+                                .maxKeys(1) // Находим только первый объект
+                                .build()
+                );
+                return results.iterator().hasNext();
+            } else {
+                // Файл проверяем через statObject
+                minioClient.statObject(
+                        StatObjectArgs.builder()
+                                .bucket(bucketName)
+                                .object(fullPath)
+                                .build()
+                );
+                return true;
+            }
+        } catch (Exception e) {
+            // statObject кидает исключение, если файл не найден
+            return false;
+        }
+    }
+
+    @Override
+    public List<String> listFolderRecursive(Long userId, String path) {
+        List<String> items = new ArrayList<>();
+        try {
+            String fullPath = getUserPrefix(userId) + path;
+            Iterable<Result<Item>> results = minioClient.listObjects(
+                    ListObjectsArgs.builder()
+                            .bucket(bucketName)
+                            .prefix(fullPath)
+                            .recursive(true)
+                            .build()
+            );
+            for (Result<Item> result : results) {
+                Item item = result.get();
+                String name = item.objectName().replace(getUserPrefix(userId), "");
+                if (!name.isEmpty()) {
+                    items.add(name);
+                }
+            }
+
+        } catch (Exception e) {
+            log.error("Error listing folder recursive: {}", e.getMessage());
+            throw new RuntimeException("Could not list folder recursive: " + e.getMessage());
+        }
+        return items;
+    }
+
+    @Override
+    public void uploadFile(Long userId, String filePath, byte[] data) {
+        try {
+            String fullPath = getUserPrefix(userId) + filePath;
+
+            minioClient.putObject(
+                    PutObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(fullPath)
+                            .stream(new ByteArrayInputStream(data), data.length, -1)
+                            .contentType(MediaType.APPLICATION_OCTET_STREAM_VALUE)
+                            .build()
+            );
+
+        } catch (Exception e) {
+            log.error("Error uploading file from byte array: {}", e.getMessage());
+            throw new RuntimeException("Could not upload file: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public List<String> listAllFiles(Long userId) {
+        List<String> items = new ArrayList<>();
+        try {
+            String prefix = getUserPrefix(userId);
+            Iterable<Result<Item>> results = minioClient.listObjects(
+                    ListObjectsArgs.builder()
+                            .bucket(bucketName)
+                            .prefix(prefix)
+                            .recursive(true)
+                            .build()
+            );
+            for (Result<Item> result : results) {
+                Item item = result.get();
+                String name = item.objectName().replace(getUserPrefix(userId), "");
+                if (!name.isEmpty()) {
+                    items.add(name);
+                }
+            }
+
+        } catch (Exception e) {
+            log.error("Error listing all files from storage: {}", e.getMessage());
+            throw new RuntimeException("Could not list all files from storage" + e.getMessage());
+        }
+
+        return items;
+    }
+
+
+    /// Получаем размер файла в байтах или Null если файл не найден
+    @Override
+    public Long getFileSize(Long userId, String filePath) {
+        try {
+            String fullPath = getUserPrefix(userId) + filePath;
+
+            StatObjectResponse stat = minioClient.statObject(
+                    StatObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(fullPath)
+                            .build()
+            );
+
+            return stat.size();
+        } catch (Exception e) {
+            log.error("Error getting file size: {}", e.getMessage());
+            throw new RuntimeException("Could not get file size: " + e.getMessage());
+        }
+    }
 
     // --------------------- Утилитарные(вспомогательные) методы -------------------------
+
     /**
      * Возвращает префикс для файлов пользователя.
      * Пример: user-1-files/

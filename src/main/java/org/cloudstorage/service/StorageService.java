@@ -11,5 +11,9 @@ public interface StorageService {
     void deleteObject(Long userId, String filePath);
     void createFolder(Long userId, String folderName);
     List<String> listFolder(Long userId, String folderPath);
-    void init();
+    Long getFileSize(Long userId, String filePath);
+    boolean exists(Long userId, String filePath);
+    List<String> listFolderRecursive(Long userId, String path);
+    void uploadFile(Long userId, String filePath, byte[] data);
+    List<String> listAllFiles(Long userId);
 }

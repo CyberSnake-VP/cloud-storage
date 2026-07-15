@@ -29,7 +29,6 @@ public class UserServiceImpl implements UserService {
                     String.format("Username %s is already in use", username)
             );
         }
-
         // создаем нового пользователя
         User user = User.builder()
                 .username(username)

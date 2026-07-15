@@ -88,6 +88,4 @@ public class AuthController {
     public ResponseEntity<Void> signOut() {
         return ResponseEntity.noContent().build();
     }
-
-
 }
