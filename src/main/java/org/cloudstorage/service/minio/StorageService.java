@@ -1,4 +1,4 @@
-package org.cloudstorage.service;
+package org.cloudstorage.service.minio;
 
 import org.springframework.web.multipart.MultipartFile;
 

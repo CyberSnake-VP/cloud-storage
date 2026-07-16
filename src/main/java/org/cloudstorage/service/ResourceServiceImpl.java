@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cloudstorage.dto.ResourceResponse;
 import org.cloudstorage.exception.NotFoundException;
 import org.cloudstorage.exception.ResourceAlreadyExists;
+import org.cloudstorage.service.minio.StorageService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 

@@ -22,6 +22,21 @@ services:
     restart: unless-stopped
 
 
+# REDIS сам удаляет истекшие ключи (TTL), ничего настраивать не нужно
+  redis:
+    image: redis:8-alpine
+    container_name: cloud-storage-redis
+    ports:
+      - "6379:6379" # стандартный порт Redis
+    volumes:
+      - redis_data:/data # сохраняем данные на диске
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
   # MINIO — S3-совместимое хранилище
   minio:
     image: minio/minio:latest
@@ -52,3 +67,4 @@ services:
 volumes:
   postgres_data:
   minio_data:
+  redis_data:
