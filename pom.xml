@@ -80,6 +80,23 @@
             <version>8.5.7</version>
         </dependency>
 
+
+        <!--
+         Внутри:
+          - Lettuce — быстрый асинхронный клиент Redis для Java
+          - RedisTemplate — удобная обёртка для операций с Redis
+          - Автоконфигурация — Spring Boot сам создаст нужные бины
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.session</groupId>
+            <artifactId>spring-session-data-redis</artifactId>
+        </dependency>
+
+
         <!-- ТЕСТОВЫЕ ЗАВИСИМОСТИ -->
         <!--
            - JUnit 5 (фреймворк для тестов)
