@@ -27,7 +27,51 @@ spring:
     enabled: true
     change-log: classpath:/db/changelog/changelog-master.yaml
 
+  # НАСТРОЙКА СЕССИИ (REDIS)
+  session:
+    # Время жизни сессии в секундах (86400 = 24 часа)
+    timeout: 86400
 
+    # доп настройки для Redis
+    redis:
+      # Префикс для ключей сессий в Redis
+      # В Redis ключи будут выглядеть так:
+      # "[cloud-storage:session]:[sessions:abc-123-def]" пространство имен : ключ
+      # Нужно как пакеты, если ключ имеет одно название, есть уникальное пространство
+      namespace: "cloud-storage:session"
+
+      # Когда сохранять сессию в Redis:
+      # on_save — при каждом изменении (безопасно)
+      # immediate — немедленно при любом изменении атрибутов
+      flush-mode: on_save
+
+   # ПОДКЛЮЧЕНИЕ К REDIS
+  data:
+    redis:
+      # Адрес Redis сервера
+      host: localhost
+      port: 6379
+
+      # Пароль (если настроен в Redis)
+      # password:
+
+      timeout: 2000ms
+
+      # Настройка клиента Lettuce
+      lettuce:
+        pool:
+          max-active: 8  # максимум одновременных соединений
+          max-idle: 8    # максимум простаивающих соединений
+          min-idle: 0    # минимум простаивающих соединений
+
+ # ЗАГРУЗКА ФАЙЛОВ
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+
+# MINIO
 minio:
   endpoint: http://localhost:9000   # API адрес
   access-key: minioadmin     # Логин
@@ -38,3 +82,5 @@ minio:
 logging:
   level:
     org.cloudstorage: INFO
+    org.springframework.session: INFO
+    org.springframework.data.redis: INFO
