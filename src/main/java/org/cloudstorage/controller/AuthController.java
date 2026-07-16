@@ -1,10 +1,17 @@
 package org.cloudstorage.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cloudstorage.dto.AuthRequest;
+import org.cloudstorage.dto.ErrorResponse;
 import org.cloudstorage.dto.UserResponse;
 import org.cloudstorage.model.User;
 import org.cloudstorage.service.AuthService;
@@ -14,6 +21,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+
+@Tag(name = "🔐 Авторизация",
+        description = "Регистрация, вход и выход пользователей")
 @RestController
 @Slf4j
 @RequiredArgsConstructor
@@ -35,6 +45,14 @@ public class AuthController {
      * @param httpRequest HTTP запрос (для создания сессии)
      * @return 201 Created с данными пользователя
      */
+    @Operation(summary = "Регистрация")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "OK"),
+            @ApiResponse(responseCode = "400", description = "Ошибка валидации",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Username занят",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    })
     @PostMapping("/sign-up")
     @ResponseStatus(HttpStatus.CREATED)
     public UserResponse signUp(@Valid @RequestBody AuthRequest request,
@@ -64,6 +82,12 @@ public class AuthController {
      * @param httpRequest HTTP запрос (для создания сессии)
      * @return 200 OK с данными пользователя
      */
+    @Operation(summary = "Вход")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "401", description = "Неверный логин или пароль",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    })
     @PostMapping("/sign-in")
     @ResponseStatus(HttpStatus.OK)
     public UserResponse signIn(@Valid @RequestBody AuthRequest request,

@@ -1,6 +1,7 @@
 package org.cloudstorage.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * DTO для ответа с информацией о файле или папке.
@@ -8,10 +9,15 @@ import com.fasterxml.jackson.annotation.JsonInclude;
  * не попадут в JSON ответ. Это удобно: size отображается только для файлов.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "Информация о файле или папке")
 public record ResourceResponse(
-        String path,      // Пример: "folder1/folder2/"
-        String name,      // Пример: "file.txt"
-        Long size,        // Только для файлов, в байтах
-        String type       // FILE или DIRECTORY
+        @Schema(description = "Путь к родительской папке", example = "docs/images/")
+        String path,
+        @Schema(description = "Имя файла или папки", example = "photo.jpg")
+        String name,
+        @Schema(description = "Размер файла в байтах (только для файлов)", example = "102400")
+        Long size,
+        @Schema(description = "Тип ресурса", example = "FILE", allowableValues = {"FILE", "DIRECTORY"})
+        String type
 ) {
 }

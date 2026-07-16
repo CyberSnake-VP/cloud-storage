@@ -81,6 +81,14 @@ public class SecurityConfig {
                         // РАЗРЕШЕНО ВСЕМ (без аутентификации):
                         .requestMatchers("/api/auth/**").permitAll() // регистрация и логин
 
+                        // SWAGGER
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/api-docs/**"
+                        ).permitAll()
+
                         // ВСЕ ОСТАЛЬНОЕ ТРЕБУЕТ аутентификации
                         .anyRequest().authenticated()
                 )

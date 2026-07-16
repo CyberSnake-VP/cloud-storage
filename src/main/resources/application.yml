@@ -71,6 +71,8 @@ spring:
       max-request-size: 100MB
 
 
+
+
 # MINIO
 minio:
   endpoint: http://localhost:9000   # API адрес
@@ -84,3 +86,20 @@ logging:
     org.cloudstorage: INFO
     org.springframework.session: INFO
     org.springframework.data.redis: INFO
+    org.springdoc: DEBUG
+    org.springframework.web: DEBUG
+
+# SWAGGER
+springdoc:
+  api-docs:
+    # Путь к JSON-описанию AP
+    path: /api-docs
+
+    # Путь к веб-интерфейсу Swagger UI
+  swagger-ui:
+    path: /swagger-ui.html
+
+   # Опционально: группировать эндпоинты по тегам
+ # tags-sorter: alpha  # сортировка тегов по алфавиту
+ # operations-sorter: method  # сортировка методов внутри тега
+
