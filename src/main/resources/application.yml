@@ -21,7 +21,6 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
-
   # включаем миграции
   liquibase:
     enabled: true
@@ -71,14 +70,16 @@ spring:
       max-request-size: 100MB
 
 
-
-
 # MINIO
 minio:
   endpoint: http://localhost:9000   # API адрес
   access-key: minioadmin     # Логин
   secret-key: minioadmin     # Пароль
   bucket-name: user-files    # Название корзины для файлов пользователей
+
+storage:
+  init:
+    enabled: true  # Контролируем запуск minIo через наш собственный флаг
 
 
 logging:

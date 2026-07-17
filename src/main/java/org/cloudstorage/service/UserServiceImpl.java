@@ -40,10 +40,4 @@ public class UserServiceImpl implements UserService {
         log.info("User registered successfully: {}", saved.getUsername());
         return saved;
     }
-
-    @Override
-    public User findByUsername(String username) {
-        return userRepository.findByUsername(username)
-                .orElseThrow(()-> new RuntimeException(String.format("User %s not found", username)));
-    }
 }

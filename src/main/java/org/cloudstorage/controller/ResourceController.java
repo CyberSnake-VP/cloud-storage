@@ -1,6 +1,7 @@
 package org.cloudstorage.controller;
 
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cloudstorage.dto.ResourceResponse;
@@ -11,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,6 +27,7 @@ import java.util.List;
 @RequestMapping("/api")
 @RequiredArgsConstructor
 @Slf4j
+@Validated
 public class ResourceController {
 
     private final ResourceService resourceService;
@@ -99,7 +102,7 @@ public class ResourceController {
     @GetMapping("/resource/search")
     @ResponseStatus(HttpStatus.OK)
     public List<ResourceResponse> searchResource(@AuthenticationPrincipal User user,
-                                                 @RequestParam String query) {
+                                                 @RequestParam @NotBlank String query) {
         log.info("GET /resource/search started for userId={}, query={}", user.getId(), query);
         List<ResourceResponse> result = resourceService.searchResources(user.getId(), query);
         log.info("GET /resource/search finished: for userId={}, query={}", user.getId(), query);

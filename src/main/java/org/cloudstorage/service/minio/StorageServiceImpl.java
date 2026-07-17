@@ -34,6 +34,26 @@ public class StorageServiceImpl implements StorageService {
     @Value("${minio.bucket-name}")
     private String bucketName;
 
+    @Value("${storage.init.enabled}")
+    private boolean enabled;
+
+
+    /**
+     * СОЗДАНИЕ BUCKET ПРИ ЗАПУСКЕ ПРИЛОЖЕНИЯ.
+     * @PostConstruct — метод вызывается автоматически после создания бина.
+     * Это гарантирует, что bucket существует до того, как приложение
+     * начнёт принимать запросы.
+     */
+    @PostConstruct
+    private void init() {
+        if (!enabled) {
+            log.warn("Minio service is disabled");
+            return;
+        }
+        ensureBucketExists();
+        log.info("StorageService initialized, bucket '{}' is ready", bucketName);
+    }
+
     /**
      * СОЗДАНИЕ КОРЗИНЫ (BUCKET) ПРИ ЗАПУСКЕ.
      * Для каждого пользователя создаём папку внутри bucket'а:
@@ -212,19 +232,6 @@ public class StorageServiceImpl implements StorageService {
         }
 
         return items;
-    }
-
-    /**
-     * СОЗДАНИЕ BUCKET ПРИ ЗАПУСКЕ ПРИЛОЖЕНИЯ.
-     *
-     * @PostConstruct — метод вызывается автоматически после создания бина.
-     * Это гарантирует, что bucket существует до того, как приложение
-     * начнёт принимать запросы.
-     */
-    @PostConstruct
-    private void init() {
-        ensureBucketExists();
-        log.info("StorageService initialized, bucket '{}' is ready", bucketName);
     }
 
     /// Проверка на существование ресурса

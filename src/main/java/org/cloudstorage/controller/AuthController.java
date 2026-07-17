@@ -40,7 +40,6 @@ public class AuthController {
      * 2. Регистрация пользователя в БД
      * 3. Автоматический вход после регистрации
      * 4. Создание сессии
-     *
      * @param request     данные пользователя (username, password) - dto
      * @param httpRequest HTTP запрос (для создания сессии)
      * @return 201 Created с данными пользователя
