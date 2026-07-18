@@ -1,0 +1,27 @@
+# Настройки БД будут подставлены Testcontainers динамически
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+
+  liquibase:
+    enabled: false
+
+  session:
+    store-type: none
+
+  # Отключаем редис и сессии через него
+  autoconfigure:
+    exclude:
+    - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+    - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+    - org.springframework.boot.autoconfigure.session.SessionAutoConfiguration
+    - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+    - org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration
+
+logging:
+  level:
+    org.cloudstorage: INFO
+    org.testcontainers: INFO
+
