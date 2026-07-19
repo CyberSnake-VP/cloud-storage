@@ -17,8 +17,8 @@ public record AuthRequest(
         String username,
 
         @NotBlank(message = "Password is required")
-        @Size(min = 4, message = "Password must be least 4 characters")
-        @Schema(description = "Пароль", example = "securePassword123", minLength = 4)
+        @Size(min = 5, message = "Password must be least 5 characters")
+        @Schema(description = "Пароль", example = "securePassword123", minLength = 5)
         String password
 ) {
 }

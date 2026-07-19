@@ -80,7 +80,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // РАЗРЕШЕНО ВСЕМ (без аутентификации):
                         .requestMatchers("/api/auth/**").permitAll() // регистрация и логин
-
+                        .requestMatchers("/api/user/me").permitAll()
                         // SWAGGER
                         .requestMatchers(
                                 "/v3/api-docs/**",

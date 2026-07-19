@@ -191,7 +191,10 @@ public class ResourceServiceImpl implements ResourceService {
 
     @Override
     public List<ResourceResponse> getDirectory(Long userId, String path) {
-        validatePath(path);
+
+        if(path.isEmpty()) {
+            path = "user-" + userId + "-files/";
+        }
         validateExists(userId, path);
         List<String> allItems = storageService.listFolder(userId, path);
         return getResourceResponseList(userId, allItems);
