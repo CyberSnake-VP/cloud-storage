@@ -194,6 +194,8 @@ public class ResourceServiceImpl implements ResourceService {
 
         if(path.isEmpty()) {
             path = "user-" + userId + "-files/";
+            List<String> allItems = storageService.listFolder(userId, path);
+            return getResourceResponseList(userId, allItems);
         }
         validateExists(userId, path);
         List<String> allItems = storageService.listFolder(userId, path);
