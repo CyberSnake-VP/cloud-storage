@@ -23,6 +23,7 @@ target/
 .sts4-cache
 
 .env
+.idea/
 
 ### NetBeans ###
 /nbproject/private/
