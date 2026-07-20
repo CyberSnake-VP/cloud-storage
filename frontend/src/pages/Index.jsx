@@ -1,5 +1,4 @@
-import {Box, Container, Divider} from "@mui/material";
-import {FilePageButton} from "../components/FilePageButton/FilePageButton.jsx";
+import {Box, Button, Link} from "@mui/material";import {FilePageButton} from "../components/FilePageButton/FilePageButton.jsx";
 import {useAuthContext} from "../context/Auth/AuthContext.jsx";
 import Typography from "@mui/material/Typography";
 import {useNavigate} from "react-router-dom";
@@ -11,49 +10,64 @@ export default function Index() {
     const navigate = useNavigate();
 
     return (
-        <Container disableGutters className="cont" style={{
-            alignItems: "center",
-            alignContent: "center",
-            textAlign: "center",
-            display: "flex",
-            flexDirection: "column",
-            width: "100%",
+        <Box sx={{
+            minHeight: '100vh',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+            px: 2
         }}>
 
-            <Box sx={{maxWidth: '640px', pt: 10, pb: 30}}>
-                <Typography variant="h4" sx={{mb: 2}}>О сайте</Typography>
-
-                <Typography className="row justify-content-md-center mb-3 ">
-                    <Typography variant="body1" className="col-lg-9 themed-grid-col text-center"> Простой сайт, который
-                        представляет собой многопользовательское
-                        файловое облако. Пользователи сервиса могут использовать его для загрузки и хранения файлов.
-                        Проект создан в рамках работы над
-                        <a href="https://zhukovsd.github.io/java-backend-learning-course/projects/cloud-file-storage/"> Java
-                            Roadmap Сергея Жукова</a>
-
-                    </Typography>
+            {/* Основной контент по центру */}
+            <Box sx={{
+                textAlign: 'center',
+                maxWidth: '600px'
+            }}>
+                <Typography variant="h3" sx={{ mb: 3, fontWeight: 'bold' }}>
+                    ☁️ Cloud Storage
                 </Typography>
 
-                <Divider style={{marginTop: 20, marginBottom: 20, marginRight: 20, marginLeft: 20}}/>
+                <Typography variant="h6" sx={{ mb: 2, color: 'text.secondary' }}>
+                    Многопользовательское файловое облако
+                </Typography>
 
-                <Box >
-                    <Typography  variant="body1" className="col-lg-8 themed-grid-col text-center">
-                        Подробнее с функционалом можно познакомиться на странице
-                        <Typography fontWeight="bold" onClick={() => navigate("/help")}
-                        sx={{
-                            cursor: "pointer",
-                            color: 'info.main',
-                        }}
-                        >
-                            помощи</Typography>
-                    </Typography>
-                </Box>
+                <Typography variant="body1" sx={{ mb: 4, color: 'text.secondary' }}>
+                    Вы можете использовать его для загрузки и хранения файлов.
+                    Создавайте папки, делитесь документами, скачивайте ZIP-архивы.
+                </Typography>
 
-                <Divider style={{marginTop: 20, marginBottom: 20, marginRight: 20, marginLeft: 20}}/>
+                <Button
+                    variant="contained"
+                    size="large"
+                    onClick={() => navigate("/registration")}
+                    sx={{ px: 6, py: 1.5, fontSize: '1.1rem' }}
+                >
+                    Зарегистрироваться
+                </Button>
 
-
-                {auth.isAuthenticated && <FilePageButton/>}
+                <Typography variant="body2" sx={{ mt: 2, color: 'text.secondary' }}>
+                    Уже есть аккаунт?{' '}
+                    <Link sx={{ cursor: 'pointer' }} onClick={() => navigate("/login")}>
+                        Войти
+                    </Link>
+                </Typography>
             </Box>
-        </Container>
+
+            {/* Ссылка на roadmap слева внизу */}
+            <Typography variant="body2" sx={{
+                position: 'absolute',
+                bottom: 16,
+                left: 16,
+                color: 'text.secondary'
+            }}>
+                <Link href="https://zhukovsd.github.io/java-backend-learning-course/projects/cloud-file-storage/"
+                      target="_blank"
+                      underline="hover">
+                    Java Roadmap Сергея Жукова
+                </Link>
+            </Typography>
+        </Box>
     )
 }

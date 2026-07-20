@@ -40,10 +40,10 @@ public class ResourceController {
     @PostMapping("/resource")
     @ResponseStatus(HttpStatus.CREATED)
     public List<ResourceResponse> uploadResource(@AuthenticationPrincipal User user,
-                                                 @RequestParam String path,
-                                                 @RequestParam("file") MultipartFile file) {
+                                                 @RequestParam(defaultValue = "") String path,
+                                                 @RequestParam("object") List<MultipartFile> files) {
         log.info("POST /resource started: for userId={}", user.getId());
-        List<ResourceResponse> result = resourceService.uploadResource(user.getId(), path, file);
+        List<ResourceResponse> result = resourceService.uploadResource(user.getId(), path, files);
         log.info("POST /resource finished: for userId={}, size={}", user.getId(), result.size());
         return result;
     }

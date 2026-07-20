@@ -6,9 +6,9 @@ spring:
     name: cloud-storage
 
   datasource:
-    url: ${URL:jdbc:postgresql://localhost:5432/${POSTGRES_DB:cloud_storage_db}}
-    username: ${POSTGRES_USERNAME:cloud_user}
-    password: ${POSTGRES_PASSWORD:cloud_pass}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/cloud_storage_db}
+    username: ${SPRING_DATASOURCE_USERNAME:cloud_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:cloud_pass}
     driver-class-name: org.postgresql.Driver
 
   # validate, только проверка схемы бд, без изменений
@@ -44,11 +44,11 @@ spring:
       # immediate — немедленно при любом изменении атрибутов
       flush-mode: on_save
 
-   # ПОДКЛЮЧЕНИЕ К REDIS
+    # ПОДКЛЮЧЕНИЕ К REDIS
   data:
     redis:
       # Адрес Redis сервера
-      host: localhost
+      host: ${SPRING_DATA_REDIS_HOST:localhost }
       port: 6379
 
       # Пароль (если настроен в Redis)
@@ -63,18 +63,20 @@ spring:
           max-idle: 8    # максимум простаивающих соединений
           min-idle: 0    # минимум простаивающих соединений
 
- # ЗАГРУЗКА ФАЙЛОВ
+  # ЗАГРУЗКА ФАЙЛОВ
   servlet:
     multipart:
-      max-file-size: 100MB
-      max-request-size: 100MB
+      max-file-size: 2048MB
+      max-request-size: 2048MB
+      resolve-lazily: true
+      file-size-threshold: 0
 
 
 # MINIO
 minio:
-  endpoint: http://localhost:9000   # API адрес
-  access-key: minioadmin     # Логин
-  secret-key: minioadmin     # Пароль
+  endpoint: ${MINIO_ENDPOINT:http://localhost:9000 }   # API адрес
+  access-key: ${MINIO_ACCESS_KEY:minioadmin}     # Логин
+  secret-key: ${MINIO_SECRET_KEY:minioadmin}     # Пароль
   bucket-name: user-files    # Название корзины для файлов пользователей
 
 storage:
@@ -100,7 +102,7 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
 
-   # Опционально: группировать эндпоинты по тегам
- # tags-sorter: alpha  # сортировка тегов по алфавиту
- # operations-sorter: method  # сортировка методов внутри тега
+    # Опционально: группировать эндпоинты по тегам
+  # tags-sorter: alpha  # сортировка тегов по алфавиту
+  # operations-sorter: method  # сортировка методов внутри тега
 

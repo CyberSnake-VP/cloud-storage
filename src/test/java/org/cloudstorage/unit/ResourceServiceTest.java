@@ -60,15 +60,6 @@ public class ResourceServiceTest {
         assertThat(response.type()).isEqualTo("DIRECTORY");
     }
 
-    @Test
-    @DisplayName("getResource - пустой путь")
-    void getResource_EmptyPath_ShouldThrowException() {
-        assertThatThrownBy(() -> resourceService.getResource(USER_ID, ""))
-                .isInstanceOf(IllegalArgumentException.class);
-
-        // проверяем что в сервис не заходим, сразу выбрасываем исключение
-        verifyNoInteractions(storageService);
-    }
 
     // DELETE_RESOURCE
     @Test

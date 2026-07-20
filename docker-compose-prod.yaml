@@ -24,7 +24,7 @@ services:
       - app-network
 
 
-# REDIS сам удаляет истекшие ключи (TTL), ничего настраивать не нужно
+  # REDIS сам удаляет истекшие ключи (TTL), ничего настраивать не нужно
   redis:
     image: redis:8-alpine
     container_name: cloud-storage-redis
@@ -67,46 +67,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - app-network
-
-
-  # БЭКЕНД (Spring Boot)
-  backend:
-    build: .
-    container_name: cloud-storage-backend
-    ports:
-      - "8080:8080"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      minio:
-        condition: service_healthy
-    environment:
-      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
-      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
-      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
-      - SPRING_DATA_REDIS_HOST=${SPRING_DATA_REDIS_HOST}
-      - MINIO_ENDPOINT=${MINIO_ENDPOINT}
-      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
-      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
-      - SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE=2048MB
-      - SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE=2048MB
-      - SPRING_SERVLET_MULTIPART_RESOLVE_LAZILY=true
-    networks:
-      - app-network
-
-
-  # ФРОНТЕНД (Nginx + React)
-  frontend:
-    build: ./frontend
-    container_name: cloud-storage-frontend
-    ports:
-      - "80:80"
-    depends_on:
-      - backend
     networks:
       - app-network
 

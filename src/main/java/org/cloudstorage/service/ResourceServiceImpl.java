@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -155,45 +156,45 @@ public class ResourceServiceImpl implements ResourceService {
     }
 
     @Override
-    public List<ResourceResponse> uploadResource(Long userId, String path, MultipartFile file) {
-        validatePath(path);
+    public List<ResourceResponse> uploadResource(Long userId, String path, List<MultipartFile> files) {
 
-        if (file.isEmpty()) {
-            throw new IllegalArgumentException("file is null or empty");
+        List<ResourceResponse> responses = new ArrayList<>();
+
+        for (MultipartFile file : files) {
+            if (file.isEmpty()) continue;
+
+            // path/ + text.txt = path/text.txt, если путь указан, значит есть к файлу поддиректории.
+            // Объединяем базовую папку + имя файла (с подпапками)
+            String originalFilename = file.getOriginalFilename();
+            if (originalFilename == null || originalFilename.isEmpty()) {
+                throw new IllegalArgumentException("File name is required");
+            }
+
+            String fullPath = path + originalFilename;
+
+            // проверяем существует ли уже такой ресурс
+            if (storageService.exists(userId, fullPath)) {
+                throw new ResourceAlreadyExists("resource already exists, path: " + fullPath);
+            }
+
+            // Записываем файл(сохраняем)
+            storageService.uploadFile(userId, fullPath, file);
+
+            // Формируем DTO
+            responses.add(new ResourceResponse(
+                    path,                           // "storage_folder/"
+                    extractName(originalFilename),  // "test.txt"
+                    file.getSize(),
+                    FileType.FILE.name()));
         }
 
-        // path/ + text.txt = path/text.txt, если путь указан, значит есть к файлу поддиректории.
-        // Объединяем базовую папку + имя файла (с подпапками)
-        String originalFilename = file.getOriginalFilename();
-        if (originalFilename == null || originalFilename.isEmpty()) {
-            throw new IllegalArgumentException("File name is required");
-        }
-
-        String fullPath = path + originalFilename;
-
-        // проверяем существует ли уже такой ресурс
-        if (storageService.exists(userId, fullPath)) {
-            throw new ResourceAlreadyExists("resource already exists, path: " + fullPath);
-        }
-
-        // Записываем файл(сохраняем)
-        storageService.uploadFile(userId, fullPath, file);
-
-        // Формируем DTO
-        ResourceResponse response = new ResourceResponse(
-                path,                           // "storage_folder/"
-                extractName(originalFilename),  // "test.txt"
-                file.getSize(),
-                FileType.FILE.name());
-
-        return List.of(response);
+        return responses;
     }
 
     @Override
     public List<ResourceResponse> getDirectory(Long userId, String path) {
 
-        if(path.isEmpty()) {
-            path = "user-" + userId + "-files/";
+        if (path.isEmpty()) {
             List<String> allItems = storageService.listFolder(userId, path);
             return getResourceResponseList(userId, allItems);
         }
@@ -283,7 +284,7 @@ public class ResourceServiceImpl implements ResourceService {
     }
 
     private void validatePath(String path) {
-        if (path == null || path.isEmpty()) {
+        if (path == null) {
             throw new IllegalArgumentException("path is null or empty");
         }
     }

@@ -16,7 +16,7 @@ public interface ResourceService {
 
     List<ResourceResponse> searchResources(Long userId, String query);
 
-    List<ResourceResponse> uploadResource(Long userId, String path, MultipartFile file);
+    List<ResourceResponse> uploadResource(Long userId, String path, List <MultipartFile> files);
 
     List<ResourceResponse> getDirectory(Long userId, String path);
 
