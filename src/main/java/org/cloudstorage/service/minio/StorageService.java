@@ -8,7 +8,7 @@ import java.util.List;
 public interface StorageService {
     void ensureBucketExists();
     void uploadFile(Long userId, String filePath, MultipartFile file);
-    InputStream downloadFile(Long userId, String filePath);
+    InputStream downloadResource(Long userId, String filePath);
     void deleteObject(Long userId, String filePath);
     void createFolder(Long userId, String folderName);
     List<String> listFolder(Long userId, String folderPath);

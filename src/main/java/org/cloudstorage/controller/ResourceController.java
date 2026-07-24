@@ -17,6 +17,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.InputStream;
 import java.util.List;
@@ -78,29 +79,52 @@ public class ResourceController {
         log.info("DELETE /resource finished: for userId={}", user.getId());
     }
 
-    @GetMapping("/resource/download")
-    public ResponseEntity<Resource> downloadResource(@AuthenticationPrincipal User user,
-                                                     @RequestParam String path) {
-        log.info("GET /resource/dowload started with userId={}", user.getId());
-        return path.endsWith("/")?
-                downloadFolder(user, path):
-                downloadFile(user, path);
+    @GetMapping(value = "/resource/download",
+            produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<StreamingResponseBody> downloadResource(@AuthenticationPrincipal User user,
+                                              @RequestParam String path) {
+        log.info("GET /resource/download started with userId={}, path={}", user.getId(), path);
+        if (path.endsWith("/")) {
+            return downloadFolder(user, path);
+        }
+        return downloadFile(user, path);
     }
 
-    private ResponseEntity<Resource> downloadFile(User user, String path) {
-        InputStream inputStream = resourceService.downloadFile(user.getId(), path);
+    // Построим маршрутизацию получения данных, в зависимости от типа, файл или папка
+    private ResponseEntity<StreamingResponseBody> downloadFile(User user, String path) {
+        StreamingResponseBody body = outputStream -> {
+            resourceService.downloadFile(
+                    user.getId(),
+                    path,
+                    outputStream
+            );
+        };
 
         String name = resourceService.extractName(path);
 
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .header(HttpHeaders.CONTENT_DISPOSITION,
-                "attachment; filename=\"" + name + "\"")
-                .body(new InputStreamResource(inputStream));
+                        "attachment; filename=\"" + name + "\"")
+                .body(body);
     }
 
-    private ResponseEntity<Resource> downloadFolder(User user, String path) {
-           return null;
+    private ResponseEntity<StreamingResponseBody> downloadFolder(User user, String path) {
+        // Создадим поток для ответа HTTP, будем использовать поток для получения папки ZIP
+        StreamingResponseBody body = outputStream -> {
+            resourceService.downloadFolder(
+                    user.getId(),
+                    path,
+                    outputStream
+            );
+        };
+        String name = resourceService.extractName(path);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + name + ".zip\"")
+                .body(body);
     }
 
     @PostMapping("/resource/move")

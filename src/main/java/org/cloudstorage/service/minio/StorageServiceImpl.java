@@ -108,7 +108,7 @@ public class StorageServiceImpl implements StorageService {
     }
 
     @Override
-    public InputStream downloadFile(Long userId, String filePath) {
+    public InputStream downloadResource(Long userId, String filePath) {
         try {
             String fullPath = getUserPrefix(userId) + filePath;
 
@@ -264,7 +264,9 @@ public class StorageServiceImpl implements StorageService {
     public List<String> listFolderRecursive(Long userId, String path) {
         List<String> items = new ArrayList<>();
         try {
-            String fullPath = getUserPrefix(userId) + path;
+            String userPrefix = getUserPrefix(userId);
+            String fullPath = userPrefix + path;
+
             Iterable<Result<Item>> results = minioClient.listObjects(
                     ListObjectsArgs.builder()
                             .bucket(bucketName)
@@ -274,7 +276,7 @@ public class StorageServiceImpl implements StorageService {
             );
             for (Result<Item> result : results) {
                 Item item = result.get();
-                String name = item.objectName().replace(getUserPrefix(userId), "");
+                String name = item.objectName().substring(userPrefix.length());
                 if (!name.isEmpty()) {
                     items.add(name);
                 }

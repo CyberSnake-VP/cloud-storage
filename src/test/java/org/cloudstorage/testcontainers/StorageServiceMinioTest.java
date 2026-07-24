@@ -99,7 +99,7 @@ public class StorageServiceMinioTest {
         byte[] original = "Test data".getBytes();
         storageService.uploadFile(USER_1, "docs/report.txt", original);
 
-        byte[] downloaded = storageService.downloadFile(USER_1, "docs/report.txt");
+        byte[] downloaded = storageService.downloadResource(USER_1, "docs/report.txt");
 
         assertThat(downloaded).isEqualTo(original);
     }
@@ -121,11 +121,11 @@ public class StorageServiceMinioTest {
         storageService.uploadFile(USER_1, "docs/report.txt", "User1 secret".getBytes());
         storageService.uploadFile(USER_2, "docs/report.txt", "User2 secret".getBytes());
 
-        byte[] userFile1 = storageService.downloadFile(USER_1, "docs/report.txt");
+        byte[] userFile1 = storageService.downloadResource(USER_1, "docs/report.txt");
         assertThat(userFile1).isEqualTo("User1 secret".getBytes());
         assertThat(userFile1).isNotEqualTo("User2 secret".getBytes());
 
-        byte[] userFile2 = storageService.downloadFile(USER_2, "docs/report.txt");
+        byte[] userFile2 = storageService.downloadResource(USER_2, "docs/report.txt");
         assertThat(userFile2).isEqualTo("User2 secret".getBytes());
         assertThat(userFile2).isNotEqualTo("User1 secret".getBytes());
 

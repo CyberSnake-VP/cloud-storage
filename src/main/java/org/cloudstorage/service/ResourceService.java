@@ -2,8 +2,11 @@ package org.cloudstorage.service;
 
 import org.cloudstorage.dto.ResourceResponse;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 
 public interface ResourceService {
@@ -11,9 +14,9 @@ public interface ResourceService {
 
     void deleteResource(Long userId, String path);
 
-    InputStream downloadFile(Long userId, String path);
+    void downloadFile(Long userId, String path, OutputStream outputStream);
 
-    byte[] downloadFolder(Long userId, String path);
+    void downloadFolder(Long userId, String path,  OutputStream outputStream);
 
     ResourceResponse moveResource(Long userId, String srcPath, String destPath);
 
