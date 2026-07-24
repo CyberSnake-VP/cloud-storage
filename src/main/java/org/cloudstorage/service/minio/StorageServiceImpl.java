@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -107,24 +108,17 @@ public class StorageServiceImpl implements StorageService {
     }
 
     @Override
-    public byte[] downloadFile(Long userId, String filePath) {
+    public InputStream downloadFile(Long userId, String filePath) {
         try {
             String fullPath = getUserPrefix(userId) + filePath;
 
             // Получаем входящий поток(InputStream)
-            GetObjectResponse response = minioClient.getObject(
+           return minioClient.getObject(
                     GetObjectArgs.builder()
                             .bucket(bucketName)
                             .object(fullPath)
                             .build()
             );
-
-            // Переливаем входящий поток в массив байтов в память, а не в файл или в сеть
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            response.transferTo(outputStream);
-
-            // Превращаем в массив байтов
-            return outputStream.toByteArray();
 
         } catch (Exception e) {
             log.error("Error downloading file: {}", e.getMessage());

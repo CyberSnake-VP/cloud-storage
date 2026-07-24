@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -57,16 +58,16 @@ public class ResourceServiceImpl implements ResourceService {
     }
 
     @Override
-    public byte[] downloadResource(Long userId, String path) {
+    public InputStream downloadFile(Long userId, String path) {
         validatePath(path);
         validateExists(userId, path);
-        if (path.endsWith("/")) {
-            log.info("Downloading folder: {}", path);
-            return downloadFolderAsZip(userId, path);
-        } else {
-            log.info("Downloading file: {}", path);
-            return storageService.downloadFile(userId, path);
-        }
+
+        return storageService.downloadFile(userId, path);
+    }
+
+    @Override
+    public byte[] downloadFolder(Long userId, String path) {
+       return null;
     }
 
     @Override
@@ -111,16 +112,16 @@ public class ResourceServiceImpl implements ResourceService {
                     storageService.createFolder(userId, newItemPath);
                 } else {
                     // Значит у нас файл, тогда нужно получить его содержимое и перезолить в новое место
-                    byte[] data = storageService.downloadFile(userId, itemPath);
-                    storageService.uploadFile(userId, newItemPath, data);
+//                    byte[] data = storageService.downloadFile(userId, itemPath);
+//                    storageService.uploadFile(userId, newItemPath, data);
                 }
             }
             // удаляем исходную папку со всем ее содержимым
             storageService.deleteObject(userId, from);
         } else {
             // перемещение, переименование файла: скачать - загрузить в новое место - удалить старое
-            byte[] data = storageService.downloadFile(userId, from);
-            storageService.uploadFile(userId, to, data);
+//            byte[] data = storageService.downloadFile(userId, from);
+//            storageService.uploadFile(userId, to, data);
             storageService.deleteObject(userId, from);
         }
 
@@ -295,40 +296,40 @@ public class ResourceServiceImpl implements ResourceService {
         }
     }
 
-    private byte[] downloadFolderAsZip(Long userId, String folderPath) {
-        try {
-            // Получаем все файлы в папке (рекурсивно) со всеми вложениями. Список полных путей к файлам
-            List<String> files = storageService.listFolderRecursive(userId, folderPath);
-
-            log.info("Found {} files", files.size());
-
-            // Создаем поток массива байтов, удобно для возврата byte[] одним методом toByteArray()
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-            // Создаем поток для zip оборачивания
-            try (ZipOutputStream zos = new ZipOutputStream(baos)) {
-                for (String filePath : files) {
-                    byte[] fileData = storageService.downloadFile(userId, filePath);
-
-                    // Сохраняем структуру внутри ZIP
-                    // срезаем весь путь, оставляем только name файла (folder/folder/) text.txt
-                    String entryName = filePath.substring(folderPath.length());
-
-                    // Создаем zip с нашим именем файла
-                    ZipEntry entry = new ZipEntry(entryName);
-                    zos.putNextEntry(entry);  // кладем архив entry
-                    zos.write(fileData);    // после пишем архивные данные внутрь нашего baos
-                    zos.closeEntry();      // закрываем архив
-                }
-            }
-
-            return baos.toByteArray();
-
-        } catch (Exception e) {
-            log.warn("Error creating ZIP: {}", e.getMessage());
-            throw new RuntimeException("Could not create ZIP archive", e);
-        }
-    }
+//    private byte[] downloadFolderAsZip(Long userId, String folderPath) {
+//        try {
+//            // Получаем все файлы в папке (рекурсивно) со всеми вложениями. Список полных путей к файлам
+//            List<String> files = storageService.listFolderRecursive(userId, folderPath);
+//
+//            log.info("Found {} files", files.size());
+//
+//            // Создаем поток массива байтов, удобно для возврата byte[] одним методом toByteArray()
+//            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//
+//            // Создаем поток для zip оборачивания
+//            try (ZipOutputStream zos = new ZipOutputStream(baos)) {
+//                for (String filePath : files) {
+//                    byte[] fileData = storageService.downloadFile(userId, filePath);
+//
+//                    // Сохраняем структуру внутри ZIP
+//                    // срезаем весь путь, оставляем только name файла (folder/folder/) text.txt
+//                    String entryName = filePath.substring(folderPath.length());
+//
+//                    // Создаем zip с нашим именем файла
+//                    ZipEntry entry = new ZipEntry(entryName);
+//                    zos.putNextEntry(entry);  // кладем архив entry
+//                    zos.write(fileData);    // после пишем архивные данные внутрь нашего baos
+//                    zos.closeEntry();      // закрываем архив
+//                }
+//            }
+//
+//            return baos.toByteArray();
+//
+//        } catch (Exception e) {
+//            log.warn("Error creating ZIP: {}", e.getMessage());
+//            throw new RuntimeException("Could not create ZIP archive", e);
+//        }
+//    }
 
     private List<ResourceResponse> getResourceResponseList(Long userId, List<String> allItems) {
         return allItems.stream()

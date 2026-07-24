@@ -7,6 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.cloudstorage.dto.ResourceResponse;
 import org.cloudstorage.model.User;
 import org.cloudstorage.service.ResourceService;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -16,6 +18,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.InputStream;
 import java.util.List;
 
 /**
@@ -76,16 +79,28 @@ public class ResourceController {
     }
 
     @GetMapping("/resource/download")
-    public ResponseEntity<byte[]> downloadResource(@AuthenticationPrincipal User user,
-                                                   @RequestParam String path) {
+    public ResponseEntity<Resource> downloadResource(@AuthenticationPrincipal User user,
+                                                     @RequestParam String path) {
         log.info("GET /resource/dowload started with userId={}", user.getId());
-        byte[] data = resourceService.downloadResource(user.getId(), path);
+        return path.endsWith("/")?
+                downloadFolder(user, path):
+                downloadFile(user, path);
+    }
+
+    private ResponseEntity<Resource> downloadFile(User user, String path) {
+        InputStream inputStream = resourceService.downloadFile(user.getId(), path);
+
         String name = resourceService.extractName(path);
 
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + name + "\"")
-                .body(data);
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                "attachment; filename=\"" + name + "\"")
+                .body(new InputStreamResource(inputStream));
+    }
+
+    private ResponseEntity<Resource> downloadFolder(User user, String path) {
+           return null;
     }
 
     @PostMapping("/resource/move")
