@@ -18,6 +18,9 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /// ЧТО ПРОВЕРЯЕМ? СЛОЙ СЕРВИСА И ПРЯМУЮ РАБОТУ С MINIO, РЕАЛЬНОЕ СОХРАНЕНИЕ ФАЙЛОВ И ПАПОК
@@ -95,13 +98,20 @@ public class StorageServiceMinioTest {
     // СКАЧИВАНИЕ
     @Test
     @DisplayName("Скачивание файла - возвращает те же данные")
-    void downloadFile_ShouldRerunSameData() {
+    void downloadFile_ShouldRerunSameData() throws IOException {
         byte[] original = "Test data".getBytes();
-        storageService.uploadFile(USER_1, "docs/report.txt", original);
 
-        byte[] downloaded = storageService.downloadResource(USER_1, "docs/report.txt");
+        storageService.uploadFile(
+                USER_1,
+                "docs/report.txt",
+                original);
 
-        assertThat(downloaded).isEqualTo(original);
+        try (InputStream downloaded =
+                     storageService.downloadResource(USER_1, "docs/report.txt")) {
+            byte[] result = downloaded.readAllBytes();
+
+            assertThat(result).isEqualTo(original);
+        }
     }
 
     @Test
@@ -117,17 +127,22 @@ public class StorageServiceMinioTest {
 
     @Test
     @DisplayName("Изоляция пользователей - USER_2 не видит файлы USER_1")
-    void userIsolation() {
+    void userIsolation() throws IOException {
         storageService.uploadFile(USER_1, "docs/report.txt", "User1 secret".getBytes());
         storageService.uploadFile(USER_2, "docs/report.txt", "User2 secret".getBytes());
 
-        byte[] userFile1 = storageService.downloadResource(USER_1, "docs/report.txt");
-        assertThat(userFile1).isEqualTo("User1 secret".getBytes());
-        assertThat(userFile1).isNotEqualTo("User2 secret".getBytes());
+        try (InputStream file1 = storageService.downloadResource(USER_1, "docs/report.txt");
+                InputStream file2 = storageService.downloadResource(USER_2,"docs/report.txt")) {
 
-        byte[] userFile2 = storageService.downloadResource(USER_2, "docs/report.txt");
-        assertThat(userFile2).isEqualTo("User2 secret".getBytes());
-        assertThat(userFile2).isNotEqualTo("User1 secret".getBytes());
+              byte[] userFile1 = file1.readAllBytes();
+              byte[] userFile2 = file2.readAllBytes();
+
+            assertThat(userFile1).isEqualTo("User1 secret".getBytes());
+            assertThat(userFile1).isNotEqualTo("User2 secret".getBytes());
+
+            assertThat(userFile2).isEqualTo("User2 secret".getBytes());
+            assertThat(userFile2).isNotEqualTo("User1 secret".getBytes());
+        }
 
     }
 
